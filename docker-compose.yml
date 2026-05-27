@@ -1,0 +1,40 @@
+services:
+    cryptotracker-alert-service:
+        build:
+            context: . 
+            dockerfile: Dockerfile
+        container_name: cryptotracker-alert-app
+        ports:
+            - "50051:50051"
+        env_file:
+          - .env
+        restart: unless-stopped
+
+        # Restrição de Recursos (Hardening): Garante que um loop infinito ou fuga de memória não manda o computador abaixo xd.
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.50'   
+                    memory: 64M
+        depends_on:
+            mysql-db:
+                condition: service_healthy
+    mysql-db:
+        image: mysql:8.0
+        container_name: mysql-db
+        environment:
+            MYSQL_DATABASE: cryptotracker-alert
+            MYSQL_USER: thealertuser
+            MYSQL_PASSWORD: thealertuser123
+            MYSQL_ROOT_PASSWORD: root123
+        ports:
+            - "3306:3306"
+        volumes:
+            - mysql_data:/var/lib/mysql 
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            timeout: 5s
+            retries: 5
+
+volumes:
+    mysql_data:

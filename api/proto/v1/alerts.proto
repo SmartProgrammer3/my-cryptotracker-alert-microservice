@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package api.proto.v1;
+
+option go_package = "cryptotracker/alert/api/proto/v1;alertv1";
+
+service AlertService {
+    // Criar um alerta
+    rpc CreateAlert (CreateAlertRequest) returns (CreateAlertResponse);
+}
+
+message CreateAlertRequest {
+    string user_id = 1;        // Identificador de quem pediu
+    string symbol = 2;         // Ex: Par crypto - ex: "BTC/EUR"
+    double target_price = 3;   // Preço alvo/ Alerta
+}
+
+message CreateAlertResponse {
+    string alert_id = 1;
+    bool success = 2;
+    string message = 3;
+}
