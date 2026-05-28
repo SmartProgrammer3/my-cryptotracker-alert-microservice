@@ -8,40 +8,43 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	configPckg "cryptotracker/alert/internal/config"
-	pb "cryptotracker/alert/api/proto/v1"
-	serverPckg "cryptotracker/alert/internal/server"
+	pb        "cryptotracker/alert/api/proto/v1"
+	configPkg "cryptotracker/alert/internal/config"
+	dbPkg     "cryptotracker/alert/internal/db"
+	serverPkg "cryptotracker/alert/internal/server"
+
+	"cryptotracker/alert/internal/motor/sniper"
+	"cryptotracker/alert/internal/motor/scout"
 )
 
 func main() {
-	fmt.Println("A iniciar o meu Microsserviço CryptoTracker - Alert!!")
+	fmt.Println("Starting CryptoTracker - Alert")
 
-	// 1. Carregar as configurações e verificar se deu erro.
-	cfg, err := configPckg.LoadConfig()
+	cfg, err := configPkg.LoadConfig()
 	if err != nil {
-		log.Fatalf("Erro crítico nas configurações: %v", err)
+		log.Fatalf("config: %v", err)
 	}
 
-	// 2. Criar um Listener TCP para abrir a porta de rede.
-	endereco := fmt.Sprintf(":%s", cfg.Port)
-	listener, err := net.Listen("tcp", endereco)
+	database, err := dbPkg.Connect(cfg.DB)
 	if err != nil {
-		log.Fatalf("Falha ao abrir a porta %s: %v", cfg.Port, err)
+		log.Fatalf("db: %v", err)
+	}
+	defer database.Close()
+
+	sniperEngine := sniper.New(database)
+	scoutEngine := scout.New(sniperEngine, cfg.BinanceWSURL)
+
+	lis, err := net.Listen("tcp", ":"+cfg.Server.Port)
+	if err != nil {
+		log.Fatalf("listener: %v", err)
 	}
 
-	// 3. Criar uma nova instância do servidor gRPC da Google
 	grpcServer := grpc.NewServer()
-
-	// 4. Instanciar o servidor de alertas
-	alertaService := &serverPckg.AlertaServer{}
-
-	// 5. Registar o teu serviço no servidor gRPC da Google
-	pb.RegisterAlertServiceServer(grpcServer, alertaService)
-
+	pb.RegisterAlertServiceServer(grpcServer, serverPkg.NewServer(database, scoutEngine, sniperEngine))
 	reflection.Register(grpcServer)
 
-    log.Printf("Servidor gRPC a correr na porta %s...\n", cfg.Port)
-    if err := grpcServer.Serve(listener); err != nil {
-        log.Fatalf("Falha ao arrancar o servidor gRPC: %v", err)
-    }
+	log.Printf("gRPC server a escutar na porta %s", cfg.Server.Port)
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("server: %v", err)
+	}
 }
