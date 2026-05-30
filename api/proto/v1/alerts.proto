@@ -5,18 +5,49 @@ package api.proto.v1;
 option go_package = "cryptotracker/alert/api/proto/v1;alertv1";
 
 service AlertService {
-    // Criar um alerta
+    // Criar um alerta.
     rpc CreateAlert (CreateAlertRequest) returns (CreateAlertResponse);
+
+    // Cancelar um alerta.
+    rpc CancelAlert (CancelAlertRequest) returns (CancelAlertResponse);
+
+    // Listar alertas.
+    rpc ListAlerts(ListAlertsRequest) returns (ListAlertsResponse);
 }
 
 message CreateAlertRequest {
-    string user_id = 1;        // Identificador de quem pediu
-    string symbol = 2;         // Ex: Par crypto - ex: "BTC/EUR"
-    double target_price = 3;   // Preço alvo/ Alerta
+    string symbol = 1;         // Símbolo para criar o alerta. Ex: Par crypto - ex: "BTC/EUR"
+    double target_price = 2;   // Preço alvo para criar o alerta.
+    string direction = 3;      // Direção do alerta. "ABOVE" — dispara quando o preço sobe até ao target_price. "BELOW" — dispara quando o preço desce até ao target_price.
 }
 
 message CreateAlertResponse {
+    string alert_id = 1;       // Identificador do alerta criado.
+    bool success = 2;          // Foi criado com sucesso ou não?
+}
+
+message CancelAlertRequest {
+    string alert_id = 1;       // Identificador do alerta a ser cancelado.
+}
+
+message CancelAlertResponse {
+    bool success = 1;          // Foi cancelado com sucesso ou não?
+}
+
+message ListAlertsRequest {
+    optional string status = 1;  // Filtrar por estado. Ex: "PENDING", "TRIGGERED", "CANCELLED"
+    optional string symbol = 2;  // Filtrar por símbolo. Ex: "BTCUSDT"
+}   
+
+message ListAlertsResponse {
+    repeated AlertMessage alerts = 1;  // repeated, porque este campo pode ter zero ou mais valores. (Alertas)
+}
+
+message AlertMessage {
     string alert_id = 1;
-    bool success = 2;
-    string message = 3;
+    string symbol = 2;
+    double target_price = 3;
+    string direction = 4;
+    string status = 5;
+    string created_at = 6;
 }

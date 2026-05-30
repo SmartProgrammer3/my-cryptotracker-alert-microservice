@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -16,7 +17,7 @@ type binancePriceEvent struct {
 }
 
 func (s *Scout) runStream(ctx context.Context, symbol string) {
-	url := fmt.Sprintf("%s/%s@aggTrade", s.binanceWSURL, symbol)
+	url := fmt.Sprintf("%s/%s@aggTrade", s.binanceWSURL, strings.ToLower(symbol))
 	backoff := time.Second
 
 	for {
@@ -54,19 +55,23 @@ func (s *Scout) readStream(ctx context.Context, conn *websocket.Conn, symbol str
 
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			log.Printf("[scout] stream %s desconectado: %v", symbol, err)
+			log.Printf("[scout] stream %s disconnected: %v", symbol, err)
 			return
 		}
 
 		var event binancePriceEvent
 		if err := json.Unmarshal(msg, &event); err != nil {
+			log.Printf("[scout] event error json unmarshal: %v — msg: %s", err, string(msg))
 			continue
 		}
 
 		price, err := strconv.ParseFloat(event.Price, 64)
 		if err != nil {
+			log.Printf("[scout] error float price parse: %v — msg: %s", err, string(msg))
 			continue
 		}
+
+		log.Printf("[scout] %s — preço: %.2f", symbol, price)
 
 		if s.sniper.Check(symbol, price) {
 			s.Unsubscribe(symbol)

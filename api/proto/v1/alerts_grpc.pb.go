@@ -20,14 +20,20 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	AlertService_CreateAlert_FullMethodName = "/api.proto.v1.AlertService/CreateAlert"
+	AlertService_CancelAlert_FullMethodName = "/api.proto.v1.AlertService/CancelAlert"
+	AlertService_ListAlerts_FullMethodName  = "/api.proto.v1.AlertService/ListAlerts"
 )
 
 // AlertServiceClient is the client API for AlertService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AlertServiceClient interface {
-	// Criar um alerta
+	// Criar um alerta.
 	CreateAlert(ctx context.Context, in *CreateAlertRequest, opts ...grpc.CallOption) (*CreateAlertResponse, error)
+	// Cancelar um alerta.
+	CancelAlert(ctx context.Context, in *CancelAlertRequest, opts ...grpc.CallOption) (*CancelAlertResponse, error)
+	// Listar alertas.
+	ListAlerts(ctx context.Context, in *ListAlertsRequest, opts ...grpc.CallOption) (*ListAlertsResponse, error)
 }
 
 type alertServiceClient struct {
@@ -48,12 +54,36 @@ func (c *alertServiceClient) CreateAlert(ctx context.Context, in *CreateAlertReq
 	return out, nil
 }
 
+func (c *alertServiceClient) CancelAlert(ctx context.Context, in *CancelAlertRequest, opts ...grpc.CallOption) (*CancelAlertResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelAlertResponse)
+	err := c.cc.Invoke(ctx, AlertService_CancelAlert_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertServiceClient) ListAlerts(ctx context.Context, in *ListAlertsRequest, opts ...grpc.CallOption) (*ListAlertsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAlertsResponse)
+	err := c.cc.Invoke(ctx, AlertService_ListAlerts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlertServiceServer is the server API for AlertService service.
 // All implementations must embed UnimplementedAlertServiceServer
 // for forward compatibility.
 type AlertServiceServer interface {
-	// Criar um alerta
+	// Criar um alerta.
 	CreateAlert(context.Context, *CreateAlertRequest) (*CreateAlertResponse, error)
+	// Cancelar um alerta.
+	CancelAlert(context.Context, *CancelAlertRequest) (*CancelAlertResponse, error)
+	// Listar alertas.
+	ListAlerts(context.Context, *ListAlertsRequest) (*ListAlertsResponse, error)
 	mustEmbedUnimplementedAlertServiceServer()
 }
 
@@ -66,6 +96,12 @@ type UnimplementedAlertServiceServer struct{}
 
 func (UnimplementedAlertServiceServer) CreateAlert(context.Context, *CreateAlertRequest) (*CreateAlertResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateAlert not implemented")
+}
+func (UnimplementedAlertServiceServer) CancelAlert(context.Context, *CancelAlertRequest) (*CancelAlertResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelAlert not implemented")
+}
+func (UnimplementedAlertServiceServer) ListAlerts(context.Context, *ListAlertsRequest) (*ListAlertsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAlerts not implemented")
 }
 func (UnimplementedAlertServiceServer) mustEmbedUnimplementedAlertServiceServer() {}
 func (UnimplementedAlertServiceServer) testEmbeddedByValue()                      {}
@@ -106,6 +142,42 @@ func _AlertService_CreateAlert_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertService_CancelAlert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelAlertRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServiceServer).CancelAlert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertService_CancelAlert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServiceServer).CancelAlert(ctx, req.(*CancelAlertRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlertService_ListAlerts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAlertsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServiceServer).ListAlerts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertService_ListAlerts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServiceServer).ListAlerts(ctx, req.(*ListAlertsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AlertService_ServiceDesc is the grpc.ServiceDesc for AlertService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -116,6 +188,14 @@ var AlertService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateAlert",
 			Handler:    _AlertService_CreateAlert_Handler,
+		},
+		{
+			MethodName: "CancelAlert",
+			Handler:    _AlertService_CancelAlert_Handler,
+		},
+		{
+			MethodName: "ListAlerts",
+			Handler:    _AlertService_ListAlerts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

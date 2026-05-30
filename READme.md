@@ -7,7 +7,7 @@ Chega de ter o TradingView aberto o dia todo. Define o teu preço-alvo e o servi
 * Criar um alerta para um par símbolo de Crypto e um preço-alvo.
 * Cancelar um alerta pendente.
 * Listar alertas existentes.
-* Monitorizar o preço do par em tempo real via Binance WebSocket.
+* Monitorizar o preço do par em tempo real via Binance WebSocket (`wss://stream.binance.com:9443/ws`) — pares disponíveis via [Exchange Info API](https://api.binance.com/api/v3/exchangeInfo).
 * Disparar o alerta quando o preço-alvo é atingido.
 * Persistir o estado dos alertas na DB (`PENDING`, `TRIGGERED`, `CANCELLED`).
 * No arranque, retomar a monitorização de todos os alertas `PENDING` existentes.
@@ -100,6 +100,11 @@ e disparar os alertas quando o preço-alvo é atingido.
 | `status` | `ENUM` | `PENDING`, `TRIGGERED`, `CANCELLED` |
 | `created_at` | `DATETIME` | Data de criação |
 | `triggered_at` | `DATETIME` | Data de disparo (nullable) |
+
+## Notificação
+
+Quando um alerta é atingido, o evento é publicado num tópico Kafka.
+O `notification-service` consome esse evento e envia a notificação via Telegram ou Webhook.
 
 ## Tecnologias
 * **Linguagem**: Go

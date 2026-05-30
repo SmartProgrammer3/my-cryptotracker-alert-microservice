@@ -10,11 +10,13 @@ import (
 
 func Connect(cfg config.DBConfig) (*sql.DB, error) {
 	dsn := mysql.Config{
-		User:   cfg.User,
-		Passwd: cfg.Password,
-		Net:    "tcp",
-		Addr:   fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
-		DBName: cfg.Name,
+		User:                 cfg.User,
+		Passwd:               cfg.Password,
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		DBName:               cfg.Name,
+		ParseTime:            true,
+		AllowNativePasswords: true,
 	}
 
 	db, err := sql.Open("mysql", dsn.FormatDSN())

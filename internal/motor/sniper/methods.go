@@ -21,10 +21,18 @@ func (s *Sniper) Check(symbol string, price float64) bool {
 	defer s.mu.Unlock()
 
 	alerts := s.alerts[symbol]
-	remaining := alerts[:0]
+	remaining := make([]alert.Alert, 0, len(alerts))
 
 	for _, a := range alerts {
-		if price >= a.TargetPrice {
+		triggered := false
+		switch a.Direction {
+		case alert.DirectionAbove:
+			triggered = price >= a.TargetPrice
+		case alert.DirectionBelow:
+			triggered = price <= a.TargetPrice
+		}
+
+		if triggered {
 			s.done(a)
 		} else {
 			remaining = append(remaining, a)
